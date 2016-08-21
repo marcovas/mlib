@@ -10,9 +10,8 @@ namespace mlib {
 
     class UDPSocket : public MSocket {
     public:
-        UDPSocket(const UDPSocket &);
         UDPSocket(unsigned short port);
-        bool Bind(string);
+        bool Bind(string&);
         virtual ~UDPSocket();
         int Read(unsigned char*, unsigned short);
         bool Write(unsigned char *, unsigned short);
@@ -28,6 +27,10 @@ namespace mlib {
         unsigned short GetRemotePort() const {
             return remotePort;
         }
+
+        bool IsBroadcast() const;
+        void SetBroadcast();
+
     protected:
         string addr;
         bool success;
@@ -35,21 +38,8 @@ namespace mlib {
         sockaddr_in remote;
         string remoteAddress;
         unsigned short remotePort;
+        bool broadcast;
     };
-    
-    class BroadcastSocket: public UDPSocket {
-    public:
-        
-        BroadcastSocket(unsigned short);
-        
-        string GetAddress() const {
-            return "BROADCAST";
-        }
-        
-        void SetAddress(const string&);
-        
-    };
-
     bool operator==(const UDPSocket &, const UDPSocket &);
     
 }

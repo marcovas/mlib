@@ -8,12 +8,9 @@ using std::endl;
 
 namespace mlib {
 
-    UDPSocket::UDPSocket(const UDPSocket &u) : MSocket(u.port),
-    addr(""), success(false), remoteAddress(""), remotePort(0) {
-    }
-
     UDPSocket::UDPSocket(unsigned short port) : MSocket(port),
-    addr(""), success(false), remoteAddress(""), remotePort(0) {
+    addr(""), success(false), remoteAddress(""), remotePort(0),
+	broadcast(false) {
         sckt = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 #ifdef _WIN32
         if (sckt == INVALID_SOCKET) {
@@ -39,8 +36,15 @@ namespace mlib {
         return Write((unsigned char*) s.c_str(), s.length());
     }
 
+    bool UDPSocket::IsBroadcast() const {
+    	return broadcast;
+    }
+
     int UDPSocket::Read(unsigned char* buffer, unsigned short len) {
         WaitAndSignal m(readMutex);
+        if (broadcast) {
+        	return 0;
+        }
 #ifdef _WIN32
         int read = recv(sckt, (char*) buffer, len, 0);
         return read;
@@ -63,17 +67,24 @@ namespace mlib {
 #ifdef _WIN32
         closesocket(sckt);
 #else
-        shutdown(sckt, 2);
+        shutdown(sckt, SHUT_RDWR);
 #endif
         closed = true;
     }
 
     bool UDPSocket::Write(unsigned char* buffer, unsigned short len) {
         WaitAndSignal w(writeMutex);
-        if (addr == "" || len == 0)
+        if ((!broadcast && addr == "") || len == 0)
             return false;
-        int sended = send(sckt, (char*) buffer, len, 0);
-        return sended >= 0;
+        int sent = send(sckt, (char*) buffer, len, 0);
+        if (sent < 0) {
+#ifdef _WIN32
+        	cerr << "Erro ao enviar bytes: " << WSAGetLastError() << endl;
+#else
+        	perror("ERRO");
+#endif
+        }
+        return sent >= 0;
     }
 
     string UDPSocket::GetRemoteAddress() const {
@@ -81,6 +92,9 @@ namespace mlib {
     }
 
     void UDPSocket::SetAddress(const string &s) {
+    	if (broadcast) {
+    		return;
+    	}
         addr = s;
         service.sin_family = AF_INET;
         service.sin_addr.s_addr = inet_addr(s.c_str());
@@ -101,7 +115,34 @@ namespace mlib {
             cerr << "UDPSocket::SetAddress ok" << s << endl;
     }
 
-    bool UDPSocket::Bind(string s) {
+    void UDPSocket::SetBroadcast() {
+    	if (addr != "") {
+    		return;
+    	}
+    	int yes = 1;
+#ifdef _WIN32
+    	char * opt = (char *)&yes;
+#else
+    	const void* opt = (const void*) &yes;
+#endif
+    	int ret = setsockopt(sckt, SOL_SOCKET, SO_BROADCAST, opt, sizeof(yes));
+#ifdef _WIN32
+    	if (ret == SOCKET_ERROR) {
+    		int err = WSAGetLastError();
+    		cerr << "Erro ao setar opções: " << err << endl;
+    	}
+#else
+    	if (ret) {
+    		perror("Erro ao setar broadcast");
+    		return;
+    	}
+#endif
+
+    	SetAddress("255.255.255.255");
+    	broadcast = true;
+    }
+
+    bool UDPSocket::Bind(string& s) {
         addr = s;
         cout << "Binding " << s << endl;
 #ifdef _WIN32
@@ -131,34 +172,6 @@ namespace mlib {
 
     bool operator==(const UDPSocket &one, const UDPSocket &other) {
         return one.GetAddress() == one.GetAddress();
-    }
-    
-    BroadcastSocket::BroadcastSocket(unsigned short port): UDPSocket(port){}
-
-    void BroadcastSocket::SetAddress(const string&) {
-        service.sin_family = AF_INET;
-        service.sin_port = htons(port);
-        int result;
-        int broadcast = 1;
-        result =setsockopt(sckt, SOL_SOCKET, SO_BROADCAST, (char *)&broadcast, sizeof(broadcast));
-        if (result < 0) {
-            perror("ERRO");
-            return;
-        }
-#ifdef _WIN32
-        result = connect(sckt, (SOCKADDR*) & service, sizeof (service));
-        if (result == SOCKET_ERROR)
-            cerr << "Error in UDPSocket::SetAddress" << endl;
-        else
-#else
-        service.sin_addr.s_addr = htonl(INADDR_BROADCAST);
-        result = connect(sckt, (struct sockaddr *) &service, sizeof (service));
-        if (result < 0) {
-           //cerr << "Error in UDPSocket::SetAddress " << result << endl;
-            perror("ERRO");
-        } else
-#endif
-            cerr << "UDPSocket::BROADCAST OK" << endl;
     }
 
 }

@@ -86,7 +86,7 @@ bool File::Rmdir(const string& dirName) {
 
 unsigned long File::GetSize() const {
 #ifdef _WIN32
-
+   return GetFileSize(h, 0);
 #else
    struct stat buff;
    stat (fileName.c_str(), &buff);

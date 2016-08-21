@@ -156,7 +156,6 @@ TCPSocket::TCPSocket() :
         int sent = 0;
 #ifdef _WIN32
         sent = send(sckt, (char*) buffer, len, 0);
-        cout << "Sended " << (char*) buffer << endl;
 #else
         cout << "Writing to " << sckt << endl;
         sent = send(sckt, (char*) buffer, len, 0);
