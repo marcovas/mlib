@@ -15,6 +15,7 @@ public:
 	bool Wait ();
 	bool Signal ();
 	unsigned int getInitialCount () { return initialCount; }
+	void Close();
 	~Semaphore();
 protected:
 	unsigned int initialCount;
@@ -23,6 +24,8 @@ protected:
 #else
 	sem_t semID;
 #endif
+private:
+	bool closed;
 };
 
 class WaitAndSignal {

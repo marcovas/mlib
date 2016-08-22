@@ -57,6 +57,7 @@ SOURCES		= \
 			Timer.cpp\
 			Stopwatch.cpp\
 			AutoThread.cpp\
+			NetworkInterface.cpp\
 			#main.cpp
 			
 HEADERS		= 	Arguments.h  \
@@ -74,7 +75,8 @@ HEADERS		= 	Arguments.h  \
 			UDPSocket.h\
 			Timer.h\
 			Stopwatch.h\
-			AutoThread.h
+			AutoThread.h\
+			NetworkInterface.h
 
 SRCS		= $(addprefix $(SRCDIR)/,$(SOURCES))
 OBJS		= $(SRCS:.cpp=.o)

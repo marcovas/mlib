@@ -25,6 +25,7 @@ namespace mlib {
 #endif
         success = true;
         cout << "Socket sucessfully created" << endl;
+        closed = false;
     }
 
     UDPSocket::~UDPSocket() {
@@ -40,6 +41,15 @@ namespace mlib {
     	return broadcast;
     }
 
+    string UDPSocket::Read() {
+    	char buff[1500];
+    	int readed = Read((unsigned char*)buff, 1500);
+    	if (readed > 0) {
+    		return string((char*)buff, 0, readed);
+    	}
+    	return "";
+    }
+
     int UDPSocket::Read(unsigned char* buffer, unsigned short len) {
         WaitAndSignal m(readMutex);
         if (broadcast) {
@@ -52,23 +62,25 @@ namespace mlib {
         socklen_t slen = sizeof (remote);
         struct sockaddr addr;
         int read = recvfrom(sckt, (char*) buffer, len, 0, &addr, &slen);
-        memcpy(&remote, &addr, slen);
-        remoteAddress = string(inet_ntoa(remote.sin_addr));
-        remotePort = remote.sin_port;
+        if (read > 0) {
+        	memcpy(&remote, &addr, slen);
+        	remoteAddress = string(inet_ntoa(remote.sin_addr));
+        	remotePort = remote.sin_port;
+        }
         return read;
 #endif
     }
 
     void UDPSocket::Close() {
-        WaitAndSignal r(readMutex);
-        WaitAndSignal w(writeMutex);
         if (closed)
             return;
 #ifdef _WIN32
         closesocket(sckt);
 #else
-        shutdown(sckt, SHUT_RDWR);
+        shutdown(sckt, 2);
 #endif
+        readMutex.Close();
+        writeMutex.Close();
         closed = true;
     }
 
@@ -129,7 +141,7 @@ namespace mlib {
 #ifdef _WIN32
     	if (ret == SOCKET_ERROR) {
     		int err = WSAGetLastError();
-    		cerr << "Erro ao setar opções: " << err << endl;
+    		cerr << "Erro ao setar opÃ§Ãµes: " << err << endl;
     	}
 #else
     	if (ret) {
@@ -142,7 +154,7 @@ namespace mlib {
     	broadcast = true;
     }
 
-    bool UDPSocket::Bind(string& s) {
+    bool UDPSocket::Bind(const string& s) {
         addr = s;
         cout << "Binding " << s << endl;
 #ifdef _WIN32

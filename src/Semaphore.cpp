@@ -2,7 +2,7 @@
 
 namespace mlib {
 
-Semaphore::Semaphore(unsigned int i): initialCount (i)
+Semaphore::Semaphore(unsigned int i): initialCount (i), closed(false)
 {
 #ifndef _WIN32
    sem_init (&semID, 1, initialCount);
@@ -12,6 +12,8 @@ Semaphore::Semaphore(unsigned int i): initialCount (i)
 }
 
 bool Semaphore::Wait() {
+	if (closed)
+		return false;
 #ifndef _WIN32
    sem_wait (&semID);
 #else
@@ -21,6 +23,8 @@ bool Semaphore::Wait() {
 }
 
 bool Semaphore::Signal() {
+	if (closed)
+		return false;
 #ifndef _WIN32
    sem_post (&semID);
 #else
@@ -29,13 +33,20 @@ bool Semaphore::Signal() {
    return true;
 }
 
-Semaphore::~Semaphore()
-{
+void Semaphore::Close() {
+	if (closed)
+		return;
 #ifndef _WIN32
    sem_destroy (&semID);
 #else
    CloseHandle (handle);
 #endif
+   closed = true;
+}
+
+Semaphore::~Semaphore()
+{
+	Close();
 }
 
 }

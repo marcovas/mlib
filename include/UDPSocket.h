@@ -11,12 +11,13 @@ namespace mlib {
     class UDPSocket : public MSocket {
     public:
         UDPSocket(unsigned short port);
-        bool Bind(string&);
+        bool Bind(const string&);
         virtual ~UDPSocket();
         int Read(unsigned char*, unsigned short);
+        string Read();
         bool Write(unsigned char *, unsigned short);
         bool Write(const string &);
-        void Close();
+        virtual void Close();
         void SetAddress(const string&);
 
         string GetAddress() const {
