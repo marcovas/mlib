@@ -24,11 +24,11 @@ void sleep(DWORD d) {
 #endif
 
 PThread::PThread() :
-  args(0), running(false) {
+  threadID(0), args(0), running(false) {
 }
 
 PThread::PThread(void* a) :
-  args(a), running(false) {
+  threadID(0), args(a), running(false) {
 }
 
 bool PThread::IsRunning() {
@@ -39,7 +39,7 @@ void PThread::Wait() {
   if (!running)
     return;
 #ifdef _WIN32
-  WaitForSingleObject(handle, INFINITE);
+  WaitForSingleObject(threadID, INFINITE);
 #else
   void * status;
   pthread_join(threadID, &status);
@@ -50,8 +50,8 @@ void PThread::Start() {
   WaitAndSignal m(mutex);
   thisThread = this;
 #ifdef _WIN32
-  handle = CreateThread(0, 0, InternalM, (LPVOID)this, 0, 0);
-  if (handle != NULL)
+  threadID = CreateThread(0, 0, InternalM, (LPVOID)this, 0, 0);
+  if (threadID != NULL)
     running = true;
 #else
   int r = pthread_create (&threadID, 0, InternalM, (void*)this);
@@ -80,7 +80,7 @@ void PThread::Stop() {
   WaitAndSignal m(mutex);
   running = false;
 #ifdef _WIN32
-  TerminateThread(handle, 0);
+  TerminateThread(threadID, 0);
 #else
   pthread_cancel(threadID);
 #endif
@@ -91,7 +91,7 @@ void PThread::Suspend() {
   if (!running)
     return;
 #ifdef _WIN32
-  SuspendThread(handle);
+  SuspendThread(threadID);
 #else
   pthread_kill(threadID, SIGSTOP);
 #endif
@@ -102,7 +102,7 @@ void PThread::Resume() {
   if (!running)
     return;
 #ifdef _WIN32
-  ResumeThread(handle);
+  ResumeThread(threadID);
 #else
   pthread_kill(threadID, SIGCONT);
 #endif
@@ -116,7 +116,7 @@ void PThread::Restart() {
 
 PThread::~PThread() {
 #ifdef _WIN32
-  CloseHandle(handle);
+  CloseHandle(threadID);
 #else
 #endif
 }

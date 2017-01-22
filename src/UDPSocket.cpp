@@ -4,6 +4,8 @@ using std::cerr;
 using std::cout;
 using std::endl;
 
+#include <unistd.h>
+
 #include <cstdio>
 
 namespace mlib {
@@ -61,7 +63,7 @@ namespace mlib {
 #else
         socklen_t slen = sizeof (remote);
         struct sockaddr addr;
-        int read = recvfrom(sckt, (char*) buffer, len, 0, &addr, &slen);
+        int read = recvfrom(sckt, buffer, len, 0, &addr, &slen);
         if (read > 0) {
         	memcpy(&remote, &addr, slen);
         	remoteAddress = string(inet_ntoa(remote.sin_addr));
@@ -78,6 +80,7 @@ namespace mlib {
         closesocket(sckt);
 #else
         shutdown(sckt, 2);
+        close(sckt);
 #endif
         readMutex.Close();
         writeMutex.Close();
@@ -93,7 +96,8 @@ namespace mlib {
 #ifdef _WIN32
         	cerr << "Erro ao enviar bytes: " << WSAGetLastError() << endl;
 #else
-        	perror("ERRO");
+        	cerr << "Erro ao enviar bytes (UDPSocket)" << sckt<< endl;
+        	perror("ERRO no UDPSocket.Write");
 #endif
         }
         return sent >= 0;
@@ -116,15 +120,13 @@ namespace mlib {
         result = connect(sckt, (SOCKADDR*) & service, sizeof (service));
         if (result == SOCKET_ERROR)
             cerr << "Error in UDPSocket::SetAddress" << endl;
-        else
 #else
         result = connect(sckt, (struct sockaddr *) &service, sizeof (service));
         if (result < 0) {
             cerr << "Error in UDPSocket::SetAddress" << endl;
             perror("ERRO");
-        } else
+        }
 #endif
-            cerr << "UDPSocket::SetAddress ok" << s << endl;
     }
 
     void UDPSocket::SetBroadcast() {

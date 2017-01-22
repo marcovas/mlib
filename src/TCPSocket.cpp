@@ -18,17 +18,17 @@ TCPSocket::TCPSocket(SOCKET fd) :
 #include <unistd.h>
 
 TCPSocket::TCPSocket(int fd) :
-    MSocket(), opened(false), addr(""), sckt(fd) {
+    MSocket(), opened(false), addr(""), sckt(fd), remotePort(0) {
         cout << "Created socket is " << fd << endl;
     }
 #endif
 
     TCPSocket::TCPSocket(unsigned short port) :
-    MSocket(port) {
+    MSocket(port), opened(false), addr(""), sckt(0), remotePort(0)  {
     }
 
     TCPSocket::TCPSocket(string a, unsigned short port) :
-    MSocket(port), opened(false), addr(a) {
+    MSocket(port), opened(false), addr(a), remotePort(0)  {
 #ifdef _WIN32
         sckt = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         if (sckt == INVALID_SOCKET) {
@@ -60,7 +60,7 @@ TCPSocket::TCPSocket() :
 #else
 
 TCPSocket::TCPSocket() :
-    MSocket(0), sckt(0) {
+    MSocket(0), opened(false), sckt(0), remotePort(0)  {
         sckt = socket(PF_INET, SOCK_STREAM, 0);
         if (sckt < 0) {
             perror("Error creating socket");

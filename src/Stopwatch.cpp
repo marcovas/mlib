@@ -14,11 +14,13 @@ Stopwatch::Stopwatch(): startTime(0), currentTime(0), running(false) {
 
 void Stopwatch::Start() {
     if (!running) {
+    	currentTime = 0;
+    	startTime = 0;
 #ifndef _WIN32
-    gettimeofday (&time0, 0);
-    startTime = timeval2int (&time0);
+    	gettimeofday (&time0, 0);
+    	startTime = timeval2int (&time0);
 #else
-    startTime = GetTickCount();
+    	startTime = GetTickCount();
 #endif   //_WIN32
     }
     running = true;
@@ -29,6 +31,11 @@ void Stopwatch::Stop() {
         CheckTime();
     }
     running = false;
+}
+
+void Stopwatch::Restart() {
+	Stop();
+	Start();
 }
 
 void Stopwatch::CheckTime() {

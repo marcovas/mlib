@@ -18,6 +18,7 @@ public:
     Stopwatch();
     void Start();
     void Stop();
+    void Restart();
     ElapsedTime GetElapsedTime();
     bool IsRunning() {
         return running;

@@ -31,7 +31,7 @@ namespace mlib {
 
     protected:
 #ifdef _WIN32
-        HANDLE handle;
+        HANDLE threadID;
 #else
         pthread_t threadID;
 #endif
