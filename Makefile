@@ -62,7 +62,6 @@ SOURCES		= \
 			
 HEADERS		= 	Arguments.h  \
 			File.h  \
-			MpegTimer.h  \
 			Mutex.h  \
 			NamedPipe.h  \
 			PThread.h  \
