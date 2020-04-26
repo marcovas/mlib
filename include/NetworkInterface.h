@@ -19,7 +19,7 @@ enum NetwotkInterfaceType {
 
 class NetworkInterface {
 public:
-	static std::vector<NetworkInterface> GetNetorkInterfaces();
+	static std::vector<NetworkInterface> GetNetworkInterfaces();
 	std::string GetInterfaceName() const;
 	std::string GetLocalAddress() const;
 	NetwotkInterfaceType GetType() const;

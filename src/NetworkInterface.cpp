@@ -29,7 +29,7 @@ NetworkInterface::NetworkInterface() :
 }
 
 #ifdef _WIN32
-std::vector<NetworkInterface> NetworkInterface::GetNetorkInterfaces() {
+std::vector<NetworkInterface> NetworkInterface::GetNetworkInterfaces() {
 	std::vector<NetworkInterface> interfaces;
 	char ac[80];
 	if (gethostname(ac, sizeof(ac)) == SOCKET_ERROR) {
@@ -65,7 +65,7 @@ std::vector<NetworkInterface> NetworkInterface::GetNetorkInterfaces() {
 	return interfaces;
 }
 #else
-std::vector<NetworkInterface> NetworkInterface::GetNetorkInterfaces() {
+std::vector<NetworkInterface> NetworkInterface::GetNetworkInterfaces() {
 	std::vector<NetworkInterface> interfaces;
 
 	ifaddrs *ifaddr, *ifa;
